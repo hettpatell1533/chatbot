@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TokenType {
+  ACCESS_TOKEN
+  REFRESH_TOKEN
+  RESET_TOKEN
+  VERIFY_TOKEN
+}
+
+model user {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  password    String
+  name        String
+  token       token[]
+  is_verified Boolean   @default(false)
+  is_admin    Boolean   @default(false)
+  projects    project[]
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+}
+
+model project {
+  id                    String                  @id @default(uuid())
+  name                  String
+  github_url            String
+  github_repo           github_repo[]
+  code_dependency_graph code_dependency_graph[]
+  room                  room[]
+  user                  user                    @relation(fields: [user_id], references: [id])
+  user_id               String
+  created_at            DateTime                @default(now())
+  updated_at            DateTime                @updatedAt
+}
+
+model github_repo {
+  id          String   @id @default(uuid())
+  source_code String
+  embedding   Int[]
+  file_name   String
+  project     project  @relation(fields: [project_id], references: [id])
+  project_id  String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+model code_dependency_graph {
+  id         String   @id @default(uuid())
+  graph      Json[]
+  project    project  @relation(fields: [project_id], references: [id])
+  project_id String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model room {
+  id         String     @id @default(uuid())
+  project    project    @relation(fields: [project_id], references: [id])
+  project_id String
+  name       String
+  messages   messages[]
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+}
+
+model messages {
+  id         String   @id @default(uuid())
+  role       String
+  content    Json
+  room       room     @relation(fields: [room_id], references: [id])
+  room_id    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model token {
+  id         String   @id @default(uuid())
+  user       user     @relation(fields: [user_id], references: [id])
+  user_id    String
+  token      String   @unique
+  type       TokenType
+  expires_at DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
