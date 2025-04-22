@@ -11,7 +11,7 @@ export class MessageController {
   ) {}
   
   @Post('')
-  async startMessage(@Body() body: { prompt: string; projectId: string; roomId: string }, @Res() res: Response): Promise<Response> {
+  async startMessage(@Body() body: { prompt: string; projectId: string; roomId: string }, @Res() res: Response): Promise<void> {
     try {
       let { prompt, projectId, roomId } = body;
       if(!roomId){
@@ -21,14 +21,16 @@ export class MessageController {
       const response = await this.messageService.aiGeneratedResponse(
         prompt,
         projectId,
-        roomId
+        roomId,
+        res
       );
-      return res.status(HttpStatus.OK).json({data: response, message: "Success"});
+      return;
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: 'An error occurred while processing the request.',
         error: error.message,
       });
+      return;
     }
   }
 

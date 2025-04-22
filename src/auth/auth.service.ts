@@ -6,8 +6,8 @@ import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { TokenType } from 'src/utils/token_type.enum';
 import { TokenService } from 'src/token/token.service';
-import ms from 'ms';
-import { sendVerificationEmail } from 'src/utils/mailer';
+import * as ms from 'ms';
+import { MailService } from 'src/mailer/mailer.service';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +16,7 @@ export class AuthService {
     private configService: ConfigService,
     private readonly userService: UsersService,
     private readonly tokenService: TokenService,
+    private readonly mailService: MailService,
   ) {}
 
   async registerUser(userData: any): Promise<any> {
@@ -75,16 +76,13 @@ export class AuthService {
         throw new Error('User not found');
       }
 
-      console.log(ms('1h'))
-
       const verificationToken = await this.tokenService.createToken(
         user.id,
         TokenType.VERIFY_TOKEN,
         user.is_admin ? 'admin' : 'user',
-        ms('1h'),
       );
 
-      await sendVerificationEmail(email, verificationToken);
+      await this.mailService.sendVerificationEmail(email, verificationToken);
 
       return { message: 'Verification email sent successfully' };
     } catch (error) {
@@ -92,11 +90,11 @@ export class AuthService {
     }
   }
 
-  async verifyEmail(token: string): Promise<any> {
+  async verifyEmail(token: string, type: TokenType): Promise<any> {
     try {
       const decodedToken = await this.tokenService.verifyToken(
         token,
-        this.configService.get<string>('JWT_SECRET')!,
+        type
       );
 
       if (!decodedToken) {
@@ -111,7 +109,12 @@ export class AuthService {
 
       await this.userService.updateUser(user.id, { is_verified: true });
 
-      return { message: 'Email verified successfully' };
+      const authToken = await this.tokenService.generateAuthToken(
+        user.id,
+        user.is_admin ? 'admin' : 'user',
+      );
+
+      return { data: authToken,message: 'Email verified successfully' };
     } catch (error) {
       throw new Error(`Error verifying email: ${error.message}`);
     }

@@ -98,7 +98,8 @@ export class AstService {
           break;
 
         case 'json':
-          metadata.render = JSON.parse(raw);
+          const cleaned = raw.replace(/(\/\/.*|\/\*[\s\S]*?\*\/)/g, '');
+          metadata.render = JSON.parse(cleaned);
           break;
 
         case 'yaml':

@@ -168,7 +168,7 @@ export class DashboardService {
         return {
           summary,
           embedding,
-          source_code: JSON.parse(JSON.stringify(doc.pageContent)),
+          source_code: doc.pageContent,
           file_name: doc.metadata.source,
         };
       }),
@@ -180,6 +180,11 @@ export class DashboardService {
       const projects = await this.prisma.project.findMany({
         include: {
           room: {
+            select: {
+              id: true,
+              name: true,
+              created_at: true,
+            },
             orderBy: {
               created_at: 'desc',
             }

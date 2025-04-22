@@ -7,7 +7,7 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
+export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService,
     private readonly prismaService: PrismaService
@@ -25,9 +25,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
   }
 
   async validate(payload: any) {
-    const { sub, email, role } = payload;
+    const { sub, role } = payload;
 
-    if (!sub || !email) {
+    if (!sub) {
       throw new UnauthorizedException("Invalid token payload");
     }
 
