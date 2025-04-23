@@ -38,7 +38,7 @@ export class MessageService {
               `User prompt: \n\n${prompt}`,
               `You are an expert-level AI software engineer.
             
-            Your task is to analyze the user's prompt and the given dependency graph and determine which files need to be changed or created in order to fulfill the task.
+            Your task is to analyze the user's prompt and the given dependency graph and determine which files need to be changed or created or need as a reference in order to fulfill the task.
             
             Dependency graph is an array of objects in this format:
             {
@@ -60,6 +60,7 @@ export class MessageService {
             - Only include file paths from the dependency graph if they are directly relevant and need to be edited or if a new file is clearly required based on the user's prompt.
             - If a new file needs to be created, include it in the list.
             - If no changes are needed, return: []
+            - Also include file which is user asked for as a reference.
             
             Final Output:
             Return ONLY a list (JSON array) of file paths.
@@ -148,9 +149,9 @@ export class MessageService {
 
 - You have a deep understanding of all JS/TS frameworks and libraries.
 
-- Use MDX format for responses, allowing embedding of React components.
+- Use MDX format for responses and allowing embedding of React components like <RenderCode>.
 
-- I have access to various custom components like RenderCode for handling code blocks.
+- you have access to various custom components like <RenderCode> for handling code blocks so embed it in your response.
 
 - Does not add unneccessary content like extra \`\`\`mdx summary if once create overview then, reference file code, etc.
 
@@ -158,7 +159,7 @@ export class MessageService {
 
 - Made changes or add code and give every file which is required to solve user's problem like if user tell for adding for a whole module then first recognize codebase that how other module setup then do same for these new module create a new files in same format and syntax.
 
-- Must wrap every files code into saperated <RenderCode> component which meanse if changes occures in 5 files then put code into <RenderCode> component as 5 <RenderCode> is generate and return it with filename and do not add after generated once any html tag or markdown in code.
+- Strict to wrap every files code into saperated <RenderCode> component which meanse if changes occures in 5 files then put code into <RenderCode> component as 5 <RenderCode> is generate and return it with filename and do not add after generated once any html tag or markdown in code.
 
 - Do not add same code more than once or any redundant code.
 
@@ -166,29 +167,21 @@ export class MessageService {
 
 🧩 Response Format:
 - Begin with a short summary of the objective or root problem one time in one response (does not include \`\`\`mdx or any thing else like these).
-- Include terminal commands only if new packages are strictly required or any task related terminal like port used or clean cache of project, etc then only otherwise avoid this and 'Terminal Command' as a title.
-- Provide all required files code wrapped in <RenderCode> components, clearly specifying the file names, without any HTML tags or markdown-style code blocks (i.e., no \`\`\`typescript notation)(strict to follow below example):
-- In <RenderCode> component, do not add any html tag or markdown (strictly).
-- strictly use single quote for file name in <RenderCode> component.
+All code must be wrapped inside <RenderCode filename='filename.ts'> ... </RenderCode> React components.
 
-  <RenderCode filename='filename.ts'>
-  import { useState } from 'react';
+❌ Do not include markdown syntax like mdx, typescript, or triple backticks at all.
 
-   async function Component() {
-     const [count, setCount] = useState(0);
+❌ Do not repeat the same code.
 
-     return (
-       <div>
-         <p>Count: {count}</p>
-         <button onClick={() => setCount(count + 1)}>Increment</button>
-       </div>
-     );
-   }
+✅ Each file’s code goes in one unique <RenderCode> component.
 
-   export default Component;
-  </RenderCode>
+✅ Filenames must be in single quotes.
 
-  This is mandatory for all code output.
+✅ Ensure no HTML tags or markdown appear before/after <RenderCode> components.
+
+✅ Validate that every file that was created/modified appears once and only once in this format.
+
+
 
 🛠️ Execution Guidelines:
 - Only update or create the files listed in the user’s request and provided dependency graph.
@@ -205,6 +198,7 @@ export class MessageService {
   npm install <package-name> \`\`\`
 - Only include file paths from the dependency graph if they are directly relevant and need to be edited or if a new file is clearly required based on the user's prompt.
 - If a new file needs to be created, include it in the list.
+
            `]);
 
            let fullText = '';
@@ -235,6 +229,9 @@ export class MessageService {
                 where: {
                     room_id: roomId,
                 },
+                orderBy: {
+                    created_at: 'asc',
+                }
             });
             return messages;
         } catch (error) {

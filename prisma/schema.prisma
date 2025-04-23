@@ -49,7 +49,6 @@ model project {
 model github_repo {
   id          String   @id @default(uuid())
   source_code String
-  embedding   Int[]
   file_name   String
   project     project  @relation(fields: [project_id], references: [id])
   project_id  String
