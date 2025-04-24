@@ -18,12 +18,12 @@ export class CookieAuthGuard implements CanActivate {
     private tokenService: TokenService,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const response: Response = context.switchToHttp().getResponse();
-    const accessToken = request.cookies?.access_token;
+    const request = await context.switchToHttp().getRequest();
+    const response: Response = await context.switchToHttp().getResponse();
+    const accessToken = await request.cookies?.access_token;
 
     if (!accessToken || await this.tokenService.isTokenExpired(accessToken)) {
-      const refreshToken = request.cookies?.refresh_token;
+      const refreshToken = await request.cookies?.refresh_token;
 
       if (!refreshToken || await this.tokenService.isTokenExpired(refreshToken)) {
         throw new UnauthorizedException('Please login first');
@@ -46,13 +46,13 @@ export class CookieAuthGuard implements CanActivate {
         newPayload.role,
       );
 
-      const newAccessToken = this.tokenService.createToken(
+      const newAccessToken = await this.tokenService.createToken(
         newPayload.sub,
         TokenType.ACCESS_TOKEN,
         newPayload.role,
       );
 
-      const newRefreshToken = this.tokenService.createToken(
+      const newRefreshToken = await this.tokenService.createToken(
         newPayload.sub,
         TokenType.REFRESH_TOKEN,
         newPayload.role,

@@ -14,9 +14,9 @@ export class MessageController {
   async startMessage(@Body() body: { prompt: string; projectId: string; roomId: string }, @Res() res: Response): Promise<void> {
     try {
       let { prompt, projectId, roomId } = body;
-      if(!roomId){
+      const isRoom = await this.roomService.getRoomById(roomId)
+      if(isRoom){
         const newRoom = await this.roomService.createRoom(projectId, `${prompt.length > 40 ? prompt.slice(0, 40) + "..." : prompt}`);
-        roomId = newRoom.id;
       }
       const response = await this.messageService.aiGeneratedResponse(
         prompt,
