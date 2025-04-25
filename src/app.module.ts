@@ -15,6 +15,7 @@ import { MailService } from './mailer/mailer.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MorganMiddleware } from './utils/morgan.middleware';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { MorganMiddleware } from './utils/morgan.middleware';
         },
       }),
     }),
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],

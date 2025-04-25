@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateRoom } from './room.interface';
 
 @Injectable()
 export class RoomService {
@@ -7,13 +8,10 @@ export class RoomService {
             private readonly prismaService: PrismaService,
         ){}
 
-    async createRoom(projectId: string, name: string) {
+    async createRoom(roomData: CreateRoom) {
         try{
             const newRoom = await this.prismaService.room.create({
-                data: {
-                    name: name,
-                    project_id: projectId,
-                },
+                data: roomData,
             });
             return newRoom;
         }
