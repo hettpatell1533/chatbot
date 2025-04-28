@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { TokenService } from 'src/token/token.service';
 import { Request, Response } from 'express';
@@ -7,6 +7,8 @@ import * as ms from 'ms';
 import { StringValue } from 'ms';
 import { TokenType } from 'src/utils/token_type.enum';
 import { ConfigService } from '@nestjs/config';
+import { CookieAuthGuard } from './token.guard';
+import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -102,6 +104,18 @@ export class AuthController {
         maxAge: ms(this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRATION') as StringValue ?? "7d")
       });
       return res.status(200).json({ message: 'Refresh token successfully', result });
+    } catch (error) {
+      return res.status(500).json({ message: error.message, error });
+    }
+  }
+
+  @Get('logout')
+  @UseGuards(CookieAuthGuard, AuthGuard)
+  async logoutUser(@Res() res: Response, @Req() req: Request): Promise<Response> {
+    try {
+      res.clearCookie('access_token');
+      res.clearCookie('refresh_token');
+      return res.status(200).json({ message: 'Logout successfully' });
     } catch (error) {
       return res.status(500).json({ message: error.message, error });
     }

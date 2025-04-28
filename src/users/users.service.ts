@@ -65,6 +65,32 @@ export class UsersService {
         }
     }
 
+    async updateUserByEmail(email: string, userData: any){
+        try {
+            const user = await this.prismaService.user.update({
+                where: { email },
+                data: userData
+            });
+            return user;
+        }
+        catch (error) {
+            throw new Error(`Error updating user: ${error.message}`);
+        }
+    }
+
+    async updateUserByCustomerId(id: string, userData: any){
+        try {
+            const user = await this.prismaService.user.update({
+                where: { customer_id: id },
+                data: userData
+            });
+            return user;
+        }
+        catch (error) {
+            throw new Error(`Error updating user: ${error.message}`);
+        }
+    }
+
     async deleteUser(id: string) {
         try {
             const user = await this.prismaService.user.delete({

@@ -21,16 +21,19 @@ enum TokenType {
 }
 
 model user {
-  id          String    @id @default(uuid())
-  email       String    @unique
-  password    String
-  name        String
-  token       token[]
-  is_verified Boolean   @default(false)
-  is_admin    Boolean   @default(false)
-  projects    project[]
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  name          String
+  token         token[]
+  is_verified   Boolean   @default(false)
+  is_admin      Boolean   @default(false)
+  is_subscribed Boolean   @default(false)
+  subscription  String?
+  customer_id   String?   @unique
+  projects      project[]
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
 }
 
 model project {
@@ -86,12 +89,12 @@ model messages {
 }
 
 model token {
-  id         String   @id @default(uuid())
-  user       user     @relation(fields: [user_id], references: [id])
+  id         String    @id @default(uuid())
+  user       user      @relation(fields: [user_id], references: [id])
   user_id    String
-  token      String   @unique
+  token      String    @unique
   type       TokenType
   expires_at DateTime
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
 }

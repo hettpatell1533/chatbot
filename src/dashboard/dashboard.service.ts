@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Inject, Injectable } from '@nestjs/common';
 import { Document } from '@langchain/core/documents';
-import { Repository } from 'typeorm';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GithubRepoLoader } from '@langchain/community/document_loaders/web/github';
 import { CreateDashboardDto } from './dtos/create-dashboard.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { project, source_code_embedding } from './dashboard.interface';
+import { project } from './dashboard.interface';
 import { AstService } from 'src/ast/ast.service';
+import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const model = genAI.getGenerativeModel({
@@ -19,6 +19,7 @@ export class DashboardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly astService: AstService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {}
 
   async aiSummarizeCommit(diff: string): Promise<string> {
@@ -136,7 +137,6 @@ export class DashboardService {
           const source_code_embedding = await this.prisma.github_repo.create({
             data: {
               source_code: embedding.source_code,
-              embedding: embedding.embedding,
               file_name: embedding.file_name,
               project_id: project.id,
             },
@@ -175,26 +175,41 @@ export class DashboardService {
     );
   }
 
-  async getAllProjects(): Promise<project[]> {
+  async getAllProjects(userId: string): Promise<project[]> {
     try{
+      const cacheKey = `user:${userId}`;
+      console.log(cacheKey)
+      const cachedUser = await this.cacheManager.get(cacheKey) as string;
+
+      if (cachedUser) {
+        return await JSON.parse(cachedUser);
+      }
+
       const projects = await this.prisma.project.findMany({
-        include: {
+        select: {
+          id: true,
+          name: true,
+          github_url: true,
+          user_id: true,
+          created_at: true,
+          updated_at: true,
           room: {
             select: {
               id: true,
               name: true,
               created_at: true,
             },
-            orderBy: {
-              created_at: 'desc',
-            }
           },
-        }
+        },
+        where: { user_id: userId },
+        orderBy: { created_at: 'desc' }
       });
-      return projects;
+      const pureProjects = JSON.parse(JSON.stringify(projects));
+      await this.cacheManager.set(cacheKey, JSON.stringify(pureProjects))
+      return pureProjects;
     }
     catch(error){
-      throw new Error(`Error getting projects: ${error}`);
+      throw new Error(`Error getting projects: ${error.message}`);
     }
   }
 }

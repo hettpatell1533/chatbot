@@ -1,7 +1,8 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Res, UseGuards } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { Response } from 'express';
 import { RoomService } from 'src/room/room.service';
+import { RateLimitGuard } from 'src/rate-limit.guard';
 
 @Controller('message')
 export class MessageController {
@@ -11,6 +12,7 @@ export class MessageController {
   ) {}
   
   @Post('')
+  @UseGuards(RateLimitGuard)
   async startMessage(@Body() body: { prompt: string; projectId: string; roomId: string }, @Res() res: Response): Promise<void> {
     try {
       let { prompt, projectId, roomId } = body;

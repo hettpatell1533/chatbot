@@ -1,9 +1,6 @@
 import { IsString } from "class-validator";
 
 export class CreateCheckoutSession {
-    @IsString({message: "Customer email is required"})
-    customer_email: string;
-
     @IsString({message: "Price is required"})
     price_id: string;
 

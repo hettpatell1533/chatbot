@@ -1,13 +1,12 @@
-import { Body, Controller, Get, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { CreateDashboardDto } from './dtos/create-dashboard.dto';
 import { Request, Response } from 'express';
-import { AstService } from 'src/ast/ast.service';
 import { CookieAuthGuard } from 'src/auth/token.guard';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { TokenService } from 'src/token/token.service';
-import * as ms from 'ms';
 import { ConfigService } from '@nestjs/config';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('dashboard')
 export class DashboardController {
@@ -15,7 +14,6 @@ export class DashboardController {
     private readonly dashboardService: DashboardService,
     private readonly tokenService: TokenService,
     private readonly configService: ConfigService,
-
   ) {}
 
   @Post('')
@@ -38,9 +36,9 @@ export class DashboardController {
 
   @Get('')
   @UseGuards(CookieAuthGuard, AuthGuard)
-  async getAllProjects(@Res() res: Response): Promise<any> {
+  async getAllProjects(@Res() res: Response, @Req() req: Request): Promise<any> {
     try {
-      const projects = await this.dashboardService.getAllProjects();
+      const projects = await this.dashboardService.getAllProjects(req["user"].id);
       return res.status(HttpStatus.OK).json({
         message: 'Fetched projects successfully',
         data: projects,

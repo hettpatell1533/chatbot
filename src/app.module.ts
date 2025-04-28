@@ -5,7 +5,6 @@ import { ChatModule } from './chat/chat.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AstModule } from './ast/ast.module';
-import { RedisModule } from './redis/redis.module';
 import { MessageModule } from './message/message.module';
 import { RoomModule } from './room/room.module';
 import { UsersModule } from './users/users.module';
@@ -16,6 +15,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MorganMiddleware } from './utils/morgan.middleware';
 import { StripeModule } from './stripe/stripe.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -42,6 +42,7 @@ import { StripeModule } from './stripe/stripe.module';
       }),
     }),
     StripeModule,
+    CacheModule.register({isGlobal: true})
   ],
   controllers: [AppController],
   providers: [AppService, MailService],
